@@ -1,0 +1,103 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    font: {
+        family: 'Helvetica Neue';
+        size: 17px;
+    }
+    margin: 0;
+    padding: 0;
+}
+
+ul, li {
+    list-style-type: none;
+}
+
+input {
+    -webkit-appearance: none;
+       -moz-appearance: none;
+
+    &:focus {
+        outline: 0;
+    }
+}
+
+/* ====================================
+    Comments
+======================================= */
+.app {
+    margin: 0 auto;
+    width: 320px;
+}
+
+.comments {
+    height: 480px;
+    overflow: auto;
+}
+
+
+.comment {
+    transition: 0.5s;
+
+    &.bubble-enter {
+        transform: translateY(40px);
+
+        &.bubble-enter-active {
+          transform: translateY(0);
+        }
+    }
+
+    &.bubble-leave {
+        opacity: 0;
+
+        &.bubble-leave-active {
+          opacity: 0;
+        }
+    }
+
+
+    p {
+        $curve-size: 15px;
+        background-image: linear-gradient(-45deg, #299efc, #2ea2fc);
+        border-radius: $curve-size;
+        color: #fff;
+        display: inline-block;
+        margin: 2px 0;
+        max-width: 190px;
+        padding: 10px 15px 10px 10px;
+        position: relative;
+
+        $tail-width: $curve-size * 3;
+        $tail-height: $curve-size * 2;
+
+
+        &:before {
+            border-color: #299efc;
+            border-style: solid;
+            border-width: 0 $curve-size;
+            border-radius: 50%;
+            bottom: 0;
+            content: '';
+            clip: rect( 0.5 * $tail-height, 0.5 * $tail-width, $tail-height, 0 );
+            height: 2 * $curve-size;
+            position: absolute;
+            right: -1 * $tail-width + $curve-size;
+            width: $curve-size;
+            z-index: -1;
+        }
+    }
+}
+
+/* ====================================
+    Comment Input
+======================================= */
+.comment__form {
+    border: 1px solid #c7c7cc;
+    border-radius: 8px;
+    font-size: 1rem;
+    height: 37px;
+    padding: 7px;
+    width: 100%;
+}

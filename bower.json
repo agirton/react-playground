@@ -1,0 +1,22 @@
+{
+  "name": "react-tests",
+  "version": "0.0.1",
+  "authors": [
+    "Adam Girton <adam.girton@me.com>"
+  ],
+  "description": "testing out react",
+  "main": "main.js",
+  "license": "MIT",
+  "homepage": "adamgirton.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "react": "~0.8.0"
+  }
+}

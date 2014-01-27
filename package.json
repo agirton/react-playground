@@ -1,0 +1,24 @@
+{
+  "name": "react-test",
+  "version": "0.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/agirton/react-tests.git"
+  },
+  "author": "Adam Girton",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "",
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "bower": "~1.2.7",
+    "grunt-autoprefixer": "~0.3.1",
+    "grunt-sass": "~0.6.1",
+    "grunt-reactjsx": "~0.2.2"
+  }
+}
