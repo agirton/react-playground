@@ -1,54 +1,98 @@
 /**
  * @jsx React.DOM
  */
-;(function () {
+;(function (React) {
     'use strict';
-
-    // An example generic Mixin that you can add to any component that should react
-    // to changes in a Backbone component. The use cases we've identified thus far
-    // are for Collections -- since they trigger a change event whenever any of
-    // their constituent items are changed there's no need to reconcile for regular
-    // models. One caveat: this relies on getBackboneModels() to always return the
-    // same model instances throughout the lifecycle of the component. If you're
-    // using this mixin correctly (it should be near the top of your component
-    // hierarchy) this should not be an issue.
-    var BackboneMixin = {
-      componentDidMount: function() {
-        // Whenever there may be a change in the Backbone data, trigger a reconcile.
-        this.getBackboneModels().forEach(function(model) {
-          model.on('add change remove', this.forceUpdate.bind(this, null), this);
-        }, this);
-      },
-
-      componentWillUnmount: function() {
-        // Ensure that we clean up any dangling references when the component is
-        // destroyed.
-        this.getBackboneModels().forEach(function(model) {
-          model.off(null, null, this);
-        }, this);
-      }
-    };
 
     var TransitionGroup = React.addons.TransitionGroup;
 
-    var Comment = Backbone.Model.extend({
-        defaults: {
-            message: ''
-        }
-    });
+    var Utilities = {
+        uuid: function(){
+            // generate a random GUID http://stackoverflow.com/a/2117523
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r&0x3|0x8);
+                return v.toString(16);
+            });
+        },
+        store: function(namespace, data){
+            var store;
 
-    var Comments = Backbone.Collection.extend({
-        model: Comment,
-        localStorage: new Store('react-tests')
-    });
+            if(data)
+                return localStorage.setItem(namespace, JSON.stringify(data));
+
+            store = localStorage[namespace];
+            return (store && JSON.parse(store)) || [];
+
+        }
+    };
+
+    function CommentModel(key){
+        this.key = key;
+        this.comments = Utilities.store(key);
+        this.onChanges = [];
+        this.message = null;
+        this.timeStamp = null;
+    }
+
+    CommentModel.prototype.inform = function(){
+        Utilities.store(this.key, this.comments);
+        this.onChanges.forEach(function(cb){
+            cb();
+        });
+    };
+
+    CommentModel.prototype.subscribe = function(item){
+        this.onChanges.push(item);
+    };
+
+    CommentModel.prototype.create = function(message){
+        this.comments = this.comments.concat({
+            id: Utilities.uuid(),
+            message: message.message,
+            timeStamp: message.timeStamp
+        });
+
+        this.inform();
+    };
 
     var CommentBubble = React.createClass({displayName: 'CommentBubble',
+        idArr: [],
+        checkTime: function(id){
+
+            var time = new Date().getTime(),
+                diff = Math.abs(this.props.comment.timeStamp - time),
+                dSeconds = Math.floor(diff/1000),
+                dMinutes = Math.floor(dSeconds/60),
+                lastId =  this.getLastItem(id);
+
+            if ((dMinutes < 5) && (dSeconds >= 0)) {
+                if(lastId !== id){
+                    console.log('hi');
+                    return 'recent';
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+        },
+        getLastItem: function(id){
+            this.idArr.push(id);
+
+            if(this.idArr.length > 1)
+                return this.idArr.pop();
+        },
         render: function(){
+            var recent = this.checkTime(this.props.comment.id);
+
             return(
-                    React.DOM.li( {className:"comment"}, 
-                        React.DOM.p(null, this.props.comment.get('message'))
-                    )
-            )
+                React.DOM.li( {className:React.addons.classSet({
+                    recent: recent,
+                    comment: 'comment'
+                })}, 
+                    React.DOM.p(null, this.props.comment.message)
+                )
+            );
         }
     });
 
@@ -63,7 +107,8 @@
         },
         save: function(msg){
             this.props.comments.create({
-                message: msg
+                message: msg,
+                timeStamp: new Date().getTime()
             });
 
             this.refs.commentForm.getDOMNode().value = '';
@@ -79,31 +124,26 @@
                         placeholder:  "Text Message"}
                     )
                 )
-            )
+            );
         }
     });
 
     var CommentApp = React.createClass({displayName: 'CommentApp',
-        mixins: [BackboneMixin],
         componentDidMount: function(){
             var comments = this.getDOMNode().childNodes[0];
 
-            this.props.comments.fetch();
             comments.scrollTop = comments.scrollHeight;
         },
-        getBackboneModels: function(){
-            return [this.props.comments];
-        },
         render: function(){
-            var comments = this.props.comments.map(function(comment){
+            var comments = this.props.model.comments.map(function(comment){
                 return (
                     CommentBubble(
-                        {key:  Math.random(),
+                        {key:  comment.id,
                         comment:  comment}
                     )
                 );
             }),
-            commentForm = CommentForm( {comments:  this.props.comments} );
+            commentForm = CommentForm( {comments:  this.props.model} );
 
             return (
                 React.DOM.div(null, 
@@ -118,8 +158,15 @@
         }
     });
 
-    React.renderComponent(
-        CommentApp( {comments:new Comments()}  ),
-        document.getElementById('app')
-    );
-}());
+    var model = new CommentModel('react-comments');
+
+    function render(){
+        React.renderComponent(
+            CommentApp( {model:model}  ),
+            document.getElementById('app')
+        );
+    }
+
+    model.subscribe(render);
+    render();
+}(React));
